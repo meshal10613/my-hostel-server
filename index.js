@@ -38,6 +38,28 @@ const database = client.db("my-hostel");
 const usersCollection = database.collection("users");
 
 // usersCollection
+app.get("/users", async(req, res) => {
+    const result = await usersCollection.find().toArray();
+    res.send(result);
+});
+
+app.post("/users", async(req, res) => {
+    const { email, lastSignInTime } = req.body;
+    const existingUser = await usersCollection.findOne({email});
+    if(existingUser){
+        const query = {email};
+        const updatedDoc = {
+            $set: {
+                lastSignInTime
+            }
+        };
+        const result = await usersCollection.updateOne(query, updatedDoc);
+        return res.send(result);
+    };
+    const user = req.body;
+    const result = await usersCollection.insertOne(user);
+    res.send(result);
+});
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
