@@ -10,9 +10,6 @@ const uri = `mongodb+srv://${process.env.VITE_USERNAME}:${process.env.VITE_PASSW
 app.use(cors());
 app.use(express.json());
 
-// my-hostel
-// iwS5cK6448R1sXNW
-
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
     serverApi: {
