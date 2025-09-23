@@ -2,7 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
 const app = express();
 const port = process.env.port || 3000;
 const { MongoClient, ServerApiVersion } = require('mongodb');
@@ -11,6 +10,7 @@ const uri = `mongodb+srv://${process.env.VITE_USERNAME}:${process.env.VITE_PASSW
 //middleware
 app.use(cors());
 app.use(express.json());
+const prisma = new PrismaClient();
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -38,8 +38,8 @@ const usersCollection = database.collection("users");
 
 // usersCollection
 app.get("/users", async(req, res) => {
-    const result = await usersCollection.find().toArray();
-    res.send(result);
+    const result = await prisma.user.findMany();
+    res.json(result);
 });
 
 app.post("/users", async(req, res) => {
