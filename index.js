@@ -60,6 +60,44 @@ app.post("/users", async(req, res) => {
     res.send(result);
 });
 
+// Prisma format
+// app.post("/users", async (req, res) => {
+//     try {
+//         const { email, lastSignInTime } = req.body;
+
+//         // Check if user exists
+//         const existingUser = await prisma.user.findUnique({
+//             where: { email }
+//         });
+
+//         if (existingUser) {
+//             // Update lastSignInTime
+//             const updatedUser = await prisma.user.update({
+//                 where: { email },
+//                 data: { lastSignInTime: new Date(lastSignInTime) }
+//             });
+//             return res.json(updatedUser);
+//         }
+
+//         // Create a new user
+//         const newUser = await prisma.user.create({
+//             data: {
+//                 email,
+//                 displayName,
+//                 photoURL,
+//                 badge,
+//                 // creationTime will be auto-set by @default(now())
+//                 // lastSignInTime will also be auto-set by @default(now()) and @updatedAt
+//             }
+//         });
+
+//         res.json(newUser);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: "Something went wrong" });
+//     }
+// });
+
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
