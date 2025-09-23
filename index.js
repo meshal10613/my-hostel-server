@@ -63,3 +63,5 @@ app.post("/users", async(req, res) => {
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
+
+// mongodb+srv://my-hostel:iwS5cK6448R1sXNW@meshal10613.mbbtx0s.mongodb.net/my-hostel?retryWrites=true&w=majority
