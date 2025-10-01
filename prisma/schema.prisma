@@ -14,7 +14,8 @@ model User {
   photoURL       String
   badge          String
   creationTime   DateTime @default(now())
-  lastSignInTime DateTime @default(now()) @updatedAt
+  lastSignInTime DateTime @default(now()) 
+  // @updatedAt
 
   @@map("users")          // maps to MongoDB collection
 }

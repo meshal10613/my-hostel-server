@@ -42,23 +42,23 @@ app.get("/users", async(req, res) => {
     res.json(result);
 });
 
-app.post("/users", async(req, res) => {
-    const { email, lastSignInTime } = req.body;
-    const existingUser = await usersCollection.findOne({email});
-    if(existingUser){
-        const query = {email};
-        const updatedDoc = {
-            $set: {
-                lastSignInTime
-            }
-        };
-        const result = await usersCollection.updateOne(query, updatedDoc);
-        return res.send(result);
-    };
-    const user = req.body;
-    const result = await usersCollection.insertOne(user);
-    res.send(result);
-});
+// app.post("/users", async(req, res) => {
+//     const { email, lastSignInTime } = req.body;
+//     const existingUser = await usersCollection.findOne({email});
+//     if(existingUser){
+//         const query = {email};
+//         const updatedDoc = {
+//             $set: {
+//                 lastSignInTime
+//             }
+//         };
+//         const result = await usersCollection.updateOne(query, updatedDoc);
+//         return res.send(result);
+//     };
+//     const user = req.body;
+//     const result = await usersCollection.insertOne(user);
+//     res.send(result);
+// });
 
 // Prisma format
 app.post("/users", async (req, res) => {
@@ -74,24 +74,25 @@ app.post("/users", async (req, res) => {
             // Update lastSignInTime
             const updatedUser = await prisma.user.update({
                 where: { email },
-                // data: { lastSignInTime: new Date() }
+                data: { lastSignInTime: new Date() }
             });
-            return res.json(updatedUser);
+            console.log(updatedUser)
+            return res.send(updatedUser);
         }
 
-        // Create a new user
-        const newUser = await prisma.user.create({
-            data: {
-                email,
-                displayName,
-                photoURL,
-                badge,
-                // creationTime will be auto-set by @default(now())
-                // lastSignInTime will also be auto-set by @default(now()) and @updatedAt
-            }
-        });
+        // // Create a new user
+        // const newUser = await prisma.user.create({
+        //     data: {
+        //         email,
+        //         displayName,
+        //         photoURL,
+        //         badge,
+        //         // creationTime will be auto-set by @default(now())
+        //         // lastSignInTime will also be auto-set by @default(now()) and @updatedAt
+        //     }
+        // });
 
-        res.json(newUser);
+        // res.send(newUser);
     }
     catch (error) {
         console.error(error);
