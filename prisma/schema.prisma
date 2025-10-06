@@ -14,8 +14,25 @@ model User {
   photoURL       String
   badge          String
   creationTime   DateTime @default(now())
-  lastSignInTime DateTime @default(now()) 
+  lastSignInTime DateTime @default(now())
   // @updatedAt
 
-  @@map("users")          // maps to MongoDB collection
+  @@map("users") // maps to MongoDB collection
+}
+
+model Meal {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  title            String
+  category         String
+  image            String
+  description      String
+  ingredients      String[]
+  rating           Int
+  price            Int
+  reviews          Int
+  distributerName  String
+  distributerEmail String
+  postTime         DateTime @default(now())
+
+  @@map("meals")
 }
