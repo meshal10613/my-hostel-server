@@ -35,6 +35,7 @@ const database = client.db("my-hostel");
 
 // Access Collection
 const usersCollection = database.collection("users");
+const mealsCollection = database.collection("meals");
 
 // usersCollection
 app.get("/users", async(req, res) => {
@@ -42,7 +43,6 @@ app.get("/users", async(req, res) => {
     res.json(result);
 });
 
-// Prisma format
 app.post("/users", async (req, res) => {
     try {
         const { email, displayName, photoURL, badge } = req.body;
@@ -79,6 +79,59 @@ app.post("/users", async (req, res) => {
         console.error(error);
         res.status(500).json({ error: "Something went wrong" });
     }
+});
+
+// mealsCollection
+app.get("/meals", async(req, res) => {
+    const result = await prisma.meal.findMany();
+    res.json(result);
+});
+
+app.post("/meals", async(req, res) => {
+    const {
+        title,
+        category,
+        image,
+        description,
+        ingredients,
+        price,
+        distributerName,
+        distributerEmail,
+    } = req.body;
+
+    // Validate required fields
+    if (!title || !category || !image || !description || !ingredients || !price) {
+        return res.status(400).json({ error: "Missing required fields" });
+    };
+
+    // Save to DB
+    const result = await prisma.meal.create({
+        data: {
+            title,
+            category,
+            image,
+            description,
+            ingredients, // String[]
+            price: price,
+            distributerName,
+            distributerEmail,
+            rating: 0, // default
+            reviews: 0, // default
+        },
+    });
+    // const result = await mealsCollection.insertOne({
+    //     title,
+    //     category,
+    //     image,
+    //     description,
+    //     ingredients, // String[]
+    //     price: price,
+    //     distributerName,
+    //     distributerEmail,
+    //     rating: 0, // default
+    //     reviews: 0, // default
+    // })
+    res.send(result);
 });
 
 app.listen(port, () => {
