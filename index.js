@@ -4,7 +4,7 @@ const cors = require("cors");
 const { PrismaClient } = require("@prisma/client");
 const app = express();
 const port = process.env.port || 3000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.VITE_USERNAME}:${process.env.VITE_PASSWORD}@meshal10613.mbbtx0s.mongodb.net/?retryWrites=true&w=majority&appName=meshal10613`;
 
 //middleware
@@ -87,6 +87,14 @@ app.get("/meals", async(req, res) => {
     res.json(result);
 });
 
+app.get("/meals/:id", async(req, res) => {
+    const { id } = req.params;
+    const result = await prisma.meal.findUnique({
+        where: { id: id }
+    });
+    res.send(result);
+});
+
 app.post("/meals", async(req, res) => {
     const {
         title,
@@ -119,18 +127,6 @@ app.post("/meals", async(req, res) => {
             reviews: 0, // default
         },
     });
-    // const result = await mealsCollection.insertOne({
-    //     title,
-    //     category,
-    //     image,
-    //     description,
-    //     ingredients, // String[]
-    //     price: price,
-    //     distributerName,
-    //     distributerEmail,
-    //     rating: 0, // default
-    //     reviews: 0, // default
-    // })
     res.send(result);
 });
 
