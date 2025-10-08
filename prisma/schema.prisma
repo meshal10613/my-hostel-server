@@ -30,6 +30,7 @@ model Meal {
   rating           Int
   price            Int
   reviews          Int
+  likes            Int
   distributerName  String
   distributerEmail String
   postTime         DateTime @default(now())

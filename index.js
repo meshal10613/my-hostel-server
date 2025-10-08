@@ -83,6 +83,13 @@ app.post("/users", async (req, res) => {
 
 // mealsCollection
 app.get("/meals", async(req, res) => {
+    const { category } = req.query;
+    if(category){
+        const result = await prisma.meal.findMany({
+            where: { category: category }
+        });
+        return res.send(result);
+    };
     const result = await prisma.meal.findMany();
     res.json(result);
 });
@@ -125,6 +132,7 @@ app.post("/meals", async(req, res) => {
             distributerEmail,
             rating: 0, // default
             reviews: 0, // default
+            likes: 0 // default
         },
     });
     res.send(result);
