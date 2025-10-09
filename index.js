@@ -162,6 +162,14 @@ app.post("/meals", async(req, res) => {
     res.send(result);
 });
 
+app.delete("/meals/:id", async(req, res) => {
+    const { id } = req.params;
+    const result = await prisma.meal.delete({
+        where: { id: id }
+    });
+    res.send(result);
+});
+
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
