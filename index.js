@@ -94,6 +94,30 @@ app.get("/meals", async(req, res) => {
     res.json(result);
 });
 
+app.get("/mealsFilter", async(req, res) => {
+    const { category, search } = req.query;
+    const result = await prisma.meal.findMany({
+        where: {
+            AND: [
+            // Search filter
+            search
+                ? {
+                    OR: [
+                        { title: { contains: search, mode: "insensitive" } },
+                        // { description: { contains: search, mode: "insensitive" } },
+                    ],
+                }
+                : {},
+
+                // Category filter
+                category ? { category: category } : {},
+            ],
+        },
+        orderBy: { postTime: "desc" }, // optional: latest first
+    });
+    res.send(result);
+});
+
 app.get("/meals/:id", async(req, res) => {
     const { id } = req.params;
     const result = await prisma.meal.findUnique({
