@@ -39,6 +39,22 @@ const mealsCollection = database.collection("meals");
 
 // usersCollection
 app.get("/users", async(req, res) => {
+    const { search } = req.query;
+    if(search){
+        const users = await prisma.user.findMany({
+            where: {
+                OR: [
+                    { displayName: { contains: search, mode: "insensitive" } },
+                    { email: { contains: search, mode: "insensitive" } },
+                ],
+            },
+            orderBy: {
+                creationTime: "desc", // optional
+            },
+        });
+
+        return res.json(users);
+    }
     const result = await prisma.user.findMany();
     res.json(result);
 });
@@ -79,6 +95,29 @@ app.post("/users", async (req, res) => {
     catch (error) {
         console.error(error);
         res.status(500).json({ error: "Something went wrong" });
+    }
+});
+
+// GET all users with server-side search
+app.get("/users", async (req, res) => {
+    const { search } = req.query;
+    try {
+        console.log(search)
+        // const users = await prisma.user.findMany({
+        //     where: {
+        //         OR: [
+        //             { displayName: { contains: search, mode: "insensitive" } },
+        //             { email: { contains: search, mode: "insensitive" } },
+        //         ],
+        //     },
+        //     orderBy: {
+        //         createdAt: "desc", // optional
+        //     },
+        // });
+
+        // res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching users", error });
     }
 });
 
