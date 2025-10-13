@@ -45,7 +45,7 @@ app.get("/users", async(req, res) => {
 
 app.post("/users", async (req, res) => {
     try {
-        const { email, displayName, photoURL, badge } = req.body;
+        const { email, displayName, photoURL, badge, role } = req.body;
 
         // Check if user exists
         const existingUser = await prisma.user.findUnique({
@@ -67,6 +67,7 @@ app.post("/users", async (req, res) => {
                 email,
                 displayName,
                 photoURL,
+                role,
                 badge,
                 // creationTime will be auto-set by @default(now())
                 // lastSignInTime will also be auto-set by @default(now()) and @updatedAt

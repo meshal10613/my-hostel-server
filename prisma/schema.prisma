@@ -12,6 +12,7 @@ model User {
   email          String   @unique
   displayName    String
   photoURL       String
+  role           String
   badge          String
   creationTime   DateTime @default(now())
   lastSignInTime DateTime @default(now())
