@@ -82,6 +82,15 @@ app.post("/users", async (req, res) => {
     }
 });
 
+app.patch("/users/admin/:id", async(req, res) => {
+    const { id } = req.params;
+    const result = await prisma.user.update({
+        where: { id },
+        data: { role: "admin" },
+    });
+    res.send(result);
+});
+
 // mealsCollection
 app.get("/meals", async(req, res) => {
     const { category } = req.query;
