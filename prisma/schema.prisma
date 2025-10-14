@@ -38,3 +38,12 @@ model Meal {
 
   @@map("meals")
 }
+
+model Likes {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  mealId    String
+  userName  String
+  userEmail String
+
+  @@map("likes")
+}

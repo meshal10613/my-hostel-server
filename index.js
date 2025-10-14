@@ -154,11 +154,19 @@ app.get("/meals/:id", async(req, res) => {
 
 app.patch("/meals/like/:id", async(req, res) => {
     const { id } = req.params;
-    const likes = req.body;
+    const serverData = req.body;
     const result = await prisma.meal.update({
         where: { id },
-        data: { likes: likes.likes + 1 },
+        data: { likes: serverData.likes + 1 },
     });
+    const createLikes = await prisma.likes.create({
+        data: {
+            mealId: id,
+            userName: serverData.userName,
+            userEmail: serverData.userEmail
+        }
+    });
+    console.log(createLikes)
     res.send(result);
 });
 
@@ -203,6 +211,25 @@ app.delete("/meals/:id", async(req, res) => {
     const result = await prisma.meal.delete({
         where: { id: id }
     });
+    res.send(result);
+});
+
+//likesCollection
+app.get("/likes/:id", async(req, res) => {
+    const { id } = req.params;
+    const { q } = req.query;
+    const mealId = id;
+    const userEmail = q;
+
+    const result = await prisma.likes.findFirst({
+        where: {
+            AND: [
+                { mealId },
+                { userEmail }
+            ]
+        }
+    });
+    console.log(result)
     res.send(result);
 });
 
