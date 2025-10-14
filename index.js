@@ -98,29 +98,6 @@ app.post("/users", async (req, res) => {
     }
 });
 
-// GET all users with server-side search
-app.get("/users", async (req, res) => {
-    const { search } = req.query;
-    try {
-        console.log(search)
-        // const users = await prisma.user.findMany({
-        //     where: {
-        //         OR: [
-        //             { displayName: { contains: search, mode: "insensitive" } },
-        //             { email: { contains: search, mode: "insensitive" } },
-        //         ],
-        //     },
-        //     orderBy: {
-        //         createdAt: "desc", // optional
-        //     },
-        // });
-
-        // res.json(users);
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching users", error });
-    }
-});
-
 app.patch("/users/admin/:id", async(req, res) => {
     const { id } = req.params;
     const result = await prisma.user.update({
@@ -171,6 +148,16 @@ app.get("/meals/:id", async(req, res) => {
     const { id } = req.params;
     const result = await prisma.meal.findUnique({
         where: { id: id }
+    });
+    res.send(result);
+});
+
+app.patch("/meals/like/:id", async(req, res) => {
+    const { id } = req.params;
+    const likes = req.body;
+    const result = await prisma.meal.update({
+        where: { id },
+        data: { likes: likes.likes + 1 },
     });
     res.send(result);
 });
