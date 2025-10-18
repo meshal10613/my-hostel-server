@@ -51,7 +51,7 @@ model Likes {
 model Rating {
   id                 String @id @default(auto()) @map("_id") @db.ObjectId
   mealId             String
-  rating             Int
+  rating             Float
   review             String
   ratingUserName     String
   ratingUserEmail    String

@@ -232,6 +232,43 @@ app.get("/likes/:id", async(req, res) => {
     res.send(result);
 });
 
+//ratingsCollection
+app.post("/ratings", async(req, res) => {
+    const {
+        mealId,
+        rating,
+        review,
+        ratingUserName,
+        ratingUserEmail,
+        ratingUserPhotoURL
+    } = req.body;
+
+    const isExist = await prisma.rating.findFirst({
+        where: {
+            AND: [
+                { mealId },
+                { ratingUserEmail }
+            ]
+        }
+    });
+    if(isExist){
+        return res.json({ data: "You've already reviewed this meal!" })
+    };
+
+    // Save to DB
+    const result = await prisma.rating.create({
+        data: {
+            mealId,
+            rating,
+            review,
+            ratingUserName,
+            ratingUserEmail,
+            ratingUserPhotoURL
+        },
+    });
+    res.send(result);
+});
+
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
