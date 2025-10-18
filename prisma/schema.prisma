@@ -47,3 +47,15 @@ model Likes {
 
   @@map("likes")
 }
+
+model Rating {
+  id                 String @id @default(auto()) @map("_id") @db.ObjectId
+  mealId             String
+  rating             Int
+  review             String
+  ratingUserName     String
+  ratingUserEmail    String
+  ratingUserPhotoURL String
+
+  @@map("ratings")
+}

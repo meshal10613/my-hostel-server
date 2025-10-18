@@ -229,7 +229,6 @@ app.get("/likes/:id", async(req, res) => {
             ]
         }
     });
-    console.log(result)
     res.send(result);
 });
 
