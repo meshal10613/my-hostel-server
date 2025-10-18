@@ -233,6 +233,19 @@ app.get("/likes/:id", async(req, res) => {
 });
 
 //ratingsCollection
+app.get("/ratings", async(req, res) => {
+    const result = await prisma.rating.findMany();
+    res.send(result);
+});
+
+app.get("/ratings/:mealId", async(req, res) => {
+    const { mealId } = req.params;
+    const result = await prisma.rating.findMany({
+        where: { mealId }
+    });
+    res.send(result);
+});
+
 app.post("/ratings", async(req, res) => {
     const {
         mealId,
