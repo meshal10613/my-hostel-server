@@ -161,7 +161,9 @@ app.get("/meals/:id", async(req, res) => {
         where: { id: id },
         include: { reviews: true },
     });
-    const rating = result.reviews.reduce((sum, r) => sum + r.rating, 0);
+    const rating = result.reviews.length > 0 ? 
+        result.reviews.reduce((sum, r) => sum + r.rating, 0) / result.reviews.length : 
+        0;
     result.rating = rating;
     res.send(result);
 });
