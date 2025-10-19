@@ -243,35 +243,37 @@ app.get("/likes/:id", async(req, res) => {
     res.send(result);
 });
 
-//ratingsCollection
-app.get("/ratings", async(req, res) => {
-    const result = await prisma.rating.findMany();
+//reviewsCollection
+app.get("/reviews", async(req, res) => {
+    const result = await prisma.review.findMany();
     res.send(result);
 });
 
-app.get("/ratings/:mealId", async(req, res) => {
-    const { mealId } = req.params;
-    const result = await prisma.rating.findMany({
-        where: { mealId }
+app.get("/reviews/:email", async(req, res) => {
+    const { email } = req.params;
+    const result = await prisma.review.findMany({
+        where: { ratingUserEmail: email }
     });
     res.send(result);
 });
 
-app.post("/ratings", async(req, res) => {
+app.post("/reviews", async(req, res) => {
     try{
         const {
             mealId,
+            mealTitle,
+            mealCategory,
             rating,
             review,
-            ratingUserName,
-            ratingUserEmail,
-            ratingUserPhotoURL
+            reviewUserName,
+            reviewUserEmail,
+            reviewUserPhotoURL
         } = req.body;
 
         // Check if this user already reviewed this meal
-        const isExist = await prisma.rating.findFirst({
+        const isExist = await prisma.review.findFirst({
             where: {
-                AND: [{ mealId }, { ratingUserEmail }],
+                AND: [{ mealId }, { reviewUserEmail }],
             },
         });
 
@@ -280,28 +282,30 @@ app.post("/ratings", async(req, res) => {
 
         if (isExist) {
             // ✅ Update existing rating & review
-            result = await prisma.rating.update({
+            result = await prisma.review.update({
                 where: { id: isExist.id },
                 data: {
                     rating,
                     review,
-                    ratingUserName,
-                    ratingUserPhotoURL,
+                    reviewUserName,
+                    reviewUserPhotoURL,
                 },
             });
             action = "updated";
         } else {
-            // ✅ Create new rating
-            result = await prisma.rating.create({
+            // ✅ Create new review
+            result = await prisma.review.create({
                 data: {
                     meal: {
                         connect: { id: mealId },
                     },
+                    mealTitle,
+                    mealCategory,
                     rating,
                     review,
-                    ratingUserName,
-                    ratingUserEmail,
-                    ratingUserPhotoURL,
+                    reviewUserName,
+                    reviewUserEmail,
+                    reviewUserPhotoURL,
                 },
             });
             action = "created";

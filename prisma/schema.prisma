@@ -36,7 +36,7 @@ model Meal {
   postTime         DateTime @default(now())
 
   // 👇 One Meal can have many Ratings
-  reviews Rating[] @relation("MealReviews")
+  reviews Review[] @relation("MealReviews")
 
   @@map("meals")
 }
@@ -50,18 +50,20 @@ model Likes {
   @@map("likes")
 }
 
-model Rating {
+model Review {
   id                 String @id @default(auto()) @map("_id") @db.ObjectId
   mealId             String @db.ObjectId
+  mealTitle          String
+  mealCategory       String
   rating             Float
   review             String
-  ratingUserName     String
-  ratingUserEmail    String
-  ratingUserPhotoURL String
+  reviewUserName     String
+  reviewUserEmail    String
+  reviewUserPhotoURL String
 
-  // 👇 Each Rating belongs to a Meal
+  // 👇 Each Review belongs to a Meal
   meal Meal @relation("MealReviews", fields: [mealId], references: [id])
+  // @@unique([mealId, reviewUserEmail]) // 👈 important
 
-  @@map("ratings")
-  // @@unique([mealId, ratingUserEmail]) // 👈 important
+  @@map("reviews")
 }
