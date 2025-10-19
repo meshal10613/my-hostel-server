@@ -110,13 +110,24 @@ app.patch("/users/admin/:id", async(req, res) => {
 // mealsCollection
 app.get("/meals", async(req, res) => {
     const { category } = req.query;
-    if(category){
-        const result = await prisma.meal.findMany({
-            where: { category: category }
-        });
-        return res.send(result);
-    };
-    const result = await prisma.meal.findMany();
+    const meals = await prisma.meal.findMany({
+        where: category ? { category } : {},
+        include: { reviews: true }
+    });
+
+    // calculate avg rating with reduce
+    const result = meals.map(meal => {
+        const avgRating =
+            meal.reviews.length > 0
+            ? meal.reviews.reduce((sum, r) => sum + r.rating, 0) /
+                meal.reviews.length
+            : 0;
+
+        return {
+            ...meal,
+            rating: parseFloat(avgRating.toFixed(2)) // keep 2 decimals
+        };
+    });
     res.json(result);
 });
 
@@ -147,8 +158,11 @@ app.get("/mealsFilter", async(req, res) => {
 app.get("/meals/:id", async(req, res) => {
     const { id } = req.params;
     const result = await prisma.meal.findUnique({
-        where: { id: id }
+        where: { id: id },
+        include: { reviews: true },
     });
+    const rating = result.reviews.reduce((sum, r) => sum + r.rating, 0);
+    result.rating = rating;
     res.send(result);
 });
 
@@ -199,7 +213,7 @@ app.post("/meals", async(req, res) => {
             distributerName,
             distributerEmail,
             rating: 0, // default
-            reviews: 0, // default
+            reviews: [], // default
             likes: 0 // default
         },
     });
@@ -271,12 +285,14 @@ app.post("/ratings", async(req, res) => {
     // Save to DB
     const result = await prisma.rating.create({
         data: {
-            mealId,
+            meal: {
+                connect: { id: mealId }, // 👈 this ensures mealId is stored as ObjectId
+            },
             rating,
             review,
             ratingUserName,
             ratingUserEmail,
-            ratingUserPhotoURL
+            ratingUserPhotoURL,
         },
     });
     res.send(result);

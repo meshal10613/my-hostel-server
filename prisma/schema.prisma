@@ -28,13 +28,15 @@ model Meal {
   image            String
   description      String
   ingredients      String[]
-  rating           Int
+  rating           Float
   price            Int
-  reviews          Int
-  likes            Int
+  likes            Int?
   distributerName  String
   distributerEmail String
   postTime         DateTime @default(now())
+
+  // 👇 One Meal can have many Ratings
+  reviews Rating[] @relation("MealReviews")
 
   @@map("meals")
 }
@@ -50,12 +52,15 @@ model Likes {
 
 model Rating {
   id                 String @id @default(auto()) @map("_id") @db.ObjectId
-  mealId             String
+  mealId             String @db.ObjectId
   rating             Float
   review             String
   ratingUserName     String
   ratingUserEmail    String
   ratingUserPhotoURL String
+
+  // 👇 Each Rating belongs to a Meal
+  meal Meal @relation("MealReviews", fields: [mealId], references: [id])
 
   @@map("ratings")
 }
