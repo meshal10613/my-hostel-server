@@ -109,50 +109,45 @@ app.patch("/users/admin/:id", async(req, res) => {
 
 // mealsCollection
 app.get("/meals", async(req, res) => {
-    const { category } = req.query;
-    const meals = await prisma.meal.findMany({
-        where: category ? { category } : {},
-        include: { reviews: true }
-    });
+    try{
+        const { category, search } = req.query;
 
-    // calculate avg rating with reduce
-    const result = meals.map(meal => {
-        const avgRating =
+        const meals = await prisma.meal.findMany({
+            where: {
+                AND: [
+                    category ? { category } : {},
+                    search
+                        ? {
+                            OR: [
+                                { title: { contains: search, mode: "insensitive" } },
+                                // { description: { contains: search, mode: "insensitive" } },
+                            ],
+                            }
+                        : {},
+                ],
+            },
+            include: { reviews: true },
+            // Removed orderBy to keep default order
+        });
+
+        // calculate avg rating with reduce
+        const result = meals.map((meal) => {
+            const avgRating =
             meal.reviews.length > 0
-            ? meal.reviews.reduce((sum, r) => sum + r.rating, 0) /
-                meal.reviews.length
-            : 0;
+                ? meal.reviews.reduce((sum, r) => sum + r.rating, 0) / meal.reviews.length
+                : 0;
 
-        return {
-            ...meal,
-            rating: parseFloat(avgRating.toFixed(2)) // keep 2 decimals
-        };
-    });
-    res.json(result);
-});
+            return {
+                ...meal,
+                rating: parseFloat(avgRating.toFixed(2)), // keep 2 decimals
+            };
+        });
 
-app.get("/mealsFilter", async(req, res) => {
-    const { category, search } = req.query;
-    const result = await prisma.meal.findMany({
-        where: {
-            AND: [
-            // Search filter
-            search
-                ? {
-                    OR: [
-                        { title: { contains: search, mode: "insensitive" } },
-                        // { description: { contains: search, mode: "insensitive" } },
-                    ],
-                }
-                : {},
-
-                // Category filter
-                category ? { category: category } : {},
-            ],
-        },
-        orderBy: { postTime: "desc" }, // optional: latest first
-    });
-    res.send(result);
+        res.json(result);
+    } catch (error) {
+        console.error("Error fetching meals:", error);
+        res.status(500).json({ success:false, message: "Failed to fetch meals" });
+    }
 });
 
 app.get("/meals/:id", async(req, res) => {
