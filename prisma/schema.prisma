@@ -63,4 +63,5 @@ model Rating {
   meal Meal @relation("MealReviews", fields: [mealId], references: [id])
 
   @@map("ratings")
+  // @@unique([mealId, ratingUserEmail]) // 👈 important
 }

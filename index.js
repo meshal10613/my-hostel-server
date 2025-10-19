@@ -261,41 +261,59 @@ app.get("/ratings/:mealId", async(req, res) => {
 });
 
 app.post("/ratings", async(req, res) => {
-    const {
-        mealId,
-        rating,
-        review,
-        ratingUserName,
-        ratingUserEmail,
-        ratingUserPhotoURL
-    } = req.body;
-
-    const isExist = await prisma.rating.findFirst({
-        where: {
-            AND: [
-                { mealId },
-                { ratingUserEmail }
-            ]
-        }
-    });
-    if(isExist){
-        return res.json({ data: "You've already reviewed this meal!" })
-    };
-
-    // Save to DB
-    const result = await prisma.rating.create({
-        data: {
-            meal: {
-                connect: { id: mealId }, // 👈 this ensures mealId is stored as ObjectId
-            },
+    try{
+        const {
+            mealId,
             rating,
             review,
             ratingUserName,
             ratingUserEmail,
-            ratingUserPhotoURL,
-        },
-    });
-    res.send(result);
+            ratingUserPhotoURL
+        } = req.body;
+
+        // Check if this user already reviewed this meal
+        const isExist = await prisma.rating.findFirst({
+            where: {
+                AND: [{ mealId }, { ratingUserEmail }],
+            },
+        });
+
+        let result;
+        let action; // "created" or "updated"
+
+        if (isExist) {
+            // ✅ Update existing rating & review
+            result = await prisma.rating.update({
+                where: { id: isExist.id },
+                data: {
+                    rating,
+                    review,
+                    ratingUserName,
+                    ratingUserPhotoURL,
+                },
+            });
+            action = "updated";
+        } else {
+            // ✅ Create new rating
+            result = await prisma.rating.create({
+                data: {
+                    meal: {
+                        connect: { id: mealId },
+                    },
+                    rating,
+                    review,
+                    ratingUserName,
+                    ratingUserEmail,
+                    ratingUserPhotoURL,
+                },
+            });
+            action = "created";
+        }
+
+        res.json({ success: true, action, data: result });
+    }catch (error) {
+        res.status(500).json({ success: false, message: "Something went wrong" });
+    }
 });
 
 app.listen(port, () => {
