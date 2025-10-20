@@ -320,3 +320,6 @@ app.post("/reviews", async(req, res) => {
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
+
+// Export Express app for Vercel
+module.exports = app;
