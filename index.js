@@ -1,330 +1,370 @@
-require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const { PrismaClient } = require("@prisma/client");
+const { errorHandler } = require("./middlewares/errorHandler");
+const { connectDB } = require("./config/db");
+
 const app = express();
 const port = process.env.PORT || 3000;
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const uri = `mongodb+srv://${process.env.VITE_USERNAME}:${process.env.VITE_PASSWORD}@meshal10613.mbbtx0s.mongodb.net/?retryWrites=true&w=majority&appName=meshal10613`;
 
-// Live Link - https://my-hostel-server.onrender.com/
-
-//middleware
+// Middleware
 app.use(cors());
 app.use(express.json());
-const prisma = new PrismaClient();
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-    serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-    }
-});
+// Connect to MongoDB
+connectDB().then(() => console.log("MongoDB connected"));
 
-app.get("/", async(req, res) => {
-    res.send("Server is running successfully...");
-});
+// Routes
+app.use("/users", require("./routes/userRoutes"));
+app.use("/meals", require("./routes/mealRoutes"));
+app.use("/reviews", require("./routes/reviewRoutes"));
+app.use("/likes", require("./routes/likeRoutes"));
 
+// Root
+app.get("/", (req, res) => res.send("Server is running successfully..."));
 
-// Send a ping to confirm a successful connection
-client.db("admin").command({ ping: 1 });
-console.log("Pinged your deployment. You successfully connected to MongoDB!");
+// Error handling middleware
+app.use(errorHandler);
 
-// Access Database
-const database = client.db("my-hostel");
+// Start server
+app.listen(port, () => console.log(`Server running at http://localhost:${port} and https://my-hostel-server.onrender.com/`));
 
-// Access Collection
-const usersCollection = database.collection("users");
-const mealsCollection = database.collection("meals");
-
-// usersCollection
-app.get("/users", async(req, res) => {
-    const { search } = req.query;
-    if(search){
-        const users = await prisma.user.findMany({
-            where: {
-                OR: [
-                    { displayName: { contains: search, mode: "insensitive" } },
-                    { email: { contains: search, mode: "insensitive" } },
-                ],
-            },
-            orderBy: {
-                creationTime: "desc", // optional
-            },
-        });
-
-        return res.json(users);
-    }
-    const result = await prisma.user.findMany();
-    res.json(result);
-});
-
-app.post("/users", async (req, res) => {
-    try {
-        const { email, displayName, photoURL, badge, role } = req.body;
-
-        // Check if user exists
-        const existingUser = await prisma.user.findUnique({
-            where: { email }
-        });
-
-        if (existingUser) {
-            // Update lastSignInTime
-            const updatedUser = await prisma.user.update({
-                where: { email },
-                data: { lastSignInTime: new Date() }
-            });
-            return res.send(updatedUser);
-        }
-
-        // Create a new user
-        const newUser = await prisma.user.create({
-            data: {
-                email,
-                displayName,
-                photoURL,
-                role,
-                badge,
-                // creationTime will be auto-set by @default(now())
-                // lastSignInTime will also be auto-set by @default(now()) and @updatedAt
-            }
-        });
-
-        res.send(newUser);
-    }
-    catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Something went wrong" });
-    }
-});
-
-app.patch("/users/admin/:id", async(req, res) => {
-    const { id } = req.params;
-    const result = await prisma.user.update({
-        where: { id },
-        data: { role: "admin" },
-    });
-    res.send(result);
-});
-
-// mealsCollection
-app.get("/meals", async(req, res) => {
-    try{
-        const { category, search } = req.query;
-
-        const meals = await prisma.meal.findMany({
-            where: {
-                AND: [
-                    category ? { category } : {},
-                    search
-                        ? {
-                            OR: [
-                                { title: { contains: search, mode: "insensitive" } },
-                                // { description: { contains: search, mode: "insensitive" } },
-                            ],
-                        }
-                        : {},
-                ],
-            },
-            include: { reviews: true },
-            // Removed orderBy to keep default order
-        });
-
-        // calculate avg rating with reduce
-        const result = meals.map((meal) => {
-            const avgRating =
-            meal.reviews.length > 0
-                ? meal.reviews.reduce((sum, r) => sum + r.rating, 0) / meal.reviews.length
-                : 0;
-
-            return {
-                ...meal,
-                rating: parseFloat(avgRating.toFixed(2)), // keep 2 decimals
-            };
-        });
-
-        res.json(result);
-    } catch (error) {
-        console.error("Error fetching meals:", error);
-        res.status(500).json({ success:false, message: "Failed to fetch meals" });
-    }
-});
-
-app.get("/meals/:id", async(req, res) => {
-    const { id } = req.params;
-    const result = await prisma.meal.findUnique({
-        where: { id: id },
-        include: { reviews: true },
-    });
-    const rating = result.reviews.length > 0 ? 
-        result.reviews.reduce((sum, r) => sum + r.rating, 0) / result.reviews.length : 
-        0;
-    result.rating = rating;
-    res.send(result);
-});
-
-app.patch("/meals/like/:id", async(req, res) => {
-    const { id } = req.params;
-    const serverData = req.body;
-    const result = await prisma.meal.update({
-        where: { id },
-        data: { likes: serverData.likes + 1 },
-    });
-    const createLikes = await prisma.likes.create({
-        data: {
-            mealId: id,
-            userName: serverData.userName,
-            userEmail: serverData.userEmail
-        }
-    });
-    console.log(createLikes)
-    res.send(result);
-});
-
-app.post("/meals", async(req, res) => {
-    const {
-        title,
-        category,
-        image,
-        description,
-        ingredients,
-        price,
-        distributerName,
-        distributerEmail,
-    } = req.body;
-
-    // Validate required fields
-    if (!title || !category || !image || !description || !ingredients || !price) {
-        return res.status(400).json({ error: "Missing required fields" });
-    };
-
-    // Save to DB
-    const result = await prisma.meal.create({
-        data: {
-            title,
-            category,
-            image,
-            description,
-            ingredients, // String[]
-            price: price,
-            distributerName,
-            distributerEmail,
-            rating: 0, // default
-            reviews: [], // default
-            likes: 0 // default
-        },
-    });
-    res.send(result);
-});
-
-app.delete("/meals/:id", async(req, res) => {
-    const { id } = req.params;
-    const result = await prisma.meal.delete({
-        where: { id: id }
-    });
-    res.send(result);
-});
-
-//likesCollection
-app.get("/likes/:id", async(req, res) => {
-    const { id } = req.params;
-    const { q } = req.query;
-    const mealId = id;
-    const userEmail = q;
-
-    const result = await prisma.likes.findFirst({
-        where: {
-            AND: [
-                { mealId },
-                { userEmail }
-            ]
-        }
-    });
-    res.send(result);
-});
-
-//reviewsCollection
-app.get("/reviews", async(req, res) => {
-    const result = await prisma.review.findMany();
-    res.send(result);
-});
-
-app.get("/reviews/:email", async(req, res) => {
-    const { email } = req.params;
-    const result = await prisma.review.findMany({
-        where: { ratingUserEmail: email }
-    });
-    res.send(result);
-});
-
-app.post("/reviews", async(req, res) => {
-    try{
-        const {
-            mealId,
-            mealTitle,
-            mealCategory,
-            rating,
-            review,
-            reviewUserName,
-            reviewUserEmail,
-            reviewUserPhotoURL
-        } = req.body;
-
-        // Check if this user already reviewed this meal
-        const isExist = await prisma.review.findFirst({
-            where: {
-                AND: [{ mealId }, { reviewUserEmail }],
-            },
-        });
-
-        let result;
-        let action; // "created" or "updated"
-
-        if (isExist) {
-            // ✅ Update existing rating & review
-            result = await prisma.review.update({
-                where: { id: isExist.id },
-                data: {
-                    rating,
-                    review,
-                    reviewUserName,
-                    reviewUserPhotoURL,
-                },
-            });
-            action = "updated";
-        } else {
-            // ✅ Create new review
-            result = await prisma.review.create({
-                data: {
-                    meal: {
-                        connect: { id: mealId },
-                    },
-                    mealTitle,
-                    mealCategory,
-                    rating,
-                    review,
-                    reviewUserName,
-                    reviewUserEmail,
-                    reviewUserPhotoURL,
-                },
-            });
-            action = "created";
-        }
-
-        res.json({ success: true, action, data: result });
-    }catch (error) {
-        res.status(500).json({ success: false, message: "Something went wrong" });
-    }
-});
-
-app.listen(port, () => {
-    console.log(
-        `Server is running on port http://localhost:${port}/`, 
-        `Live Link- https://my-hostel-server.onrender.com/`
-    );
-});
-
-// Export Express app for Vercel
 module.exports = app;
+
+
+
+
+
+
+
+
+//! Previous structure-------------------------------------------------------------------------->
+// require("dotenv").config();
+// const express = require("express");
+// const cors = require("cors");
+// const { PrismaClient } = require("@prisma/client");
+// const app = express();
+// const port = process.env.PORT || 3000;
+// const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+// const uri = `mongodb+srv://${process.env.VITE_USERNAME}:${process.env.VITE_PASSWORD}@meshal10613.mbbtx0s.mongodb.net/?retryWrites=true&w=majority&appName=meshal10613`;
+
+// // Live Link - https://my-hostel-server.onrender.com/
+
+// //middleware
+// app.use(cors());
+// app.use(express.json());
+// const prisma = new PrismaClient();
+
+// // Create a MongoClient with a MongoClientOptions object to set the Stable API version
+// const client = new MongoClient(uri, {
+//     serverApi: {
+//         version: ServerApiVersion.v1,
+//         strict: true,
+//         deprecationErrors: true,
+//     }
+// });
+
+// app.get("/", async(req, res) => {
+//     res.send("Server is running successfully...");
+// });
+
+
+// // Send a ping to confirm a successful connection
+// client.db("admin").command({ ping: 1 });
+// console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+// // Access Database
+// const database = client.db("my-hostel");
+
+// // Access Collection
+// const usersCollection = database.collection("users");
+// const mealsCollection = database.collection("meals");
+
+// // usersCollection
+// app.get("/users", async(req, res) => {
+//     const { search } = req.query;
+//     if(search){
+//         const users = await prisma.user.findMany({
+//             where: {
+//                 OR: [
+//                     { displayName: { contains: search, mode: "insensitive" } },
+//                     { email: { contains: search, mode: "insensitive" } },
+//                 ],
+//             },
+//             orderBy: {
+//                 creationTime: "desc", // optional
+//             },
+//         });
+
+//         return res.json(users);
+//     }
+//     const result = await prisma.user.findMany();
+//     res.json(result);
+// });
+
+// app.post("/users", async (req, res) => {
+//     try {
+//         const { email, displayName, photoURL, badge, role } = req.body;
+
+//         // Check if user exists
+//         const existingUser = await prisma.user.findUnique({
+//             where: { email }
+//         });
+
+//         if (existingUser) {
+//             // Update lastSignInTime
+//             const updatedUser = await prisma.user.update({
+//                 where: { email },
+//                 data: { lastSignInTime: new Date() }
+//             });
+//             return res.send(updatedUser);
+//         }
+
+//         // Create a new user
+//         const newUser = await prisma.user.create({
+//             data: {
+//                 email,
+//                 displayName,
+//                 photoURL,
+//                 role,
+//                 badge,
+//                 // creationTime will be auto-set by @default(now())
+//                 // lastSignInTime will also be auto-set by @default(now()) and @updatedAt
+//             }
+//         });
+
+//         res.send(newUser);
+//     }
+//     catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: "Something went wrong" });
+//     }
+// });
+
+// app.patch("/users/admin/:id", async(req, res) => {
+//     const { id } = req.params;
+//     const result = await prisma.user.update({
+//         where: { id },
+//         data: { role: "admin" },
+//     });
+//     res.send(result);
+// });
+
+// // mealsCollection
+// app.get("/meals", async(req, res) => {
+//     try{
+//         const { category, search } = req.query;
+
+//         const meals = await prisma.meal.findMany({
+//             where: {
+//                 AND: [
+//                     category ? { category } : {},
+//                     search
+//                         ? {
+//                             OR: [
+//                                 { title: { contains: search, mode: "insensitive" } },
+//                                 // { description: { contains: search, mode: "insensitive" } },
+//                             ],
+//                         }
+//                         : {},
+//                 ],
+//             },
+//             include: { reviews: true },
+//             // Removed orderBy to keep default order
+//         });
+
+//         // calculate avg rating with reduce
+//         const result = meals.map((meal) => {
+//             const avgRating =
+//             meal.reviews.length > 0
+//                 ? meal.reviews.reduce((sum, r) => sum + r.rating, 0) / meal.reviews.length
+//                 : 0;
+
+//             return {
+//                 ...meal,
+//                 rating: parseFloat(avgRating.toFixed(2)), // keep 2 decimals
+//             };
+//         });
+
+//         res.json(result);
+//     } catch (error) {
+//         console.error("Error fetching meals:", error);
+//         res.status(500).json({ success:false, message: "Failed to fetch meals" });
+//     }
+// });
+
+// app.get("/meals/:id", async(req, res) => {
+//     const { id } = req.params;
+//     const result = await prisma.meal.findUnique({
+//         where: { id: id },
+//         include: { reviews: true },
+//     });
+//     const rating = result.reviews.length > 0 ? 
+//         result.reviews.reduce((sum, r) => sum + r.rating, 0) / result.reviews.length : 
+//         0;
+//     result.rating = rating;
+//     res.send(result);
+// });
+
+// app.patch("/meals/like/:id", async(req, res) => {
+//     const { id } = req.params;
+//     const serverData = req.body;
+//     const result = await prisma.meal.update({
+//         where: { id },
+//         data: { likes: serverData.likes + 1 },
+//     });
+//     const createLikes = await prisma.likes.create({
+//         data: {
+//             mealId: id,
+//             userName: serverData.userName,
+//             userEmail: serverData.userEmail
+//         }
+//     });
+//     console.log(createLikes)
+//     res.send(result);
+// });
+
+// app.post("/meals", async(req, res) => {
+//     const {
+//         title,
+//         category,
+//         image,
+//         description,
+//         ingredients,
+//         price,
+//         distributerName,
+//         distributerEmail,
+//     } = req.body;
+
+//     // Validate required fields
+//     if (!title || !category || !image || !description || !ingredients || !price) {
+//         return res.status(400).json({ error: "Missing required fields" });
+//     };
+
+//     // Save to DB
+//     const result = await prisma.meal.create({
+//         data: {
+//             title,
+//             category,
+//             image,
+//             description,
+//             ingredients, // String[]
+//             price: price,
+//             distributerName,
+//             distributerEmail,
+//             rating: 0, // default
+//             reviews: [], // default
+//             likes: 0 // default
+//         },
+//     });
+//     res.send(result);
+// });
+
+// app.delete("/meals/:id", async(req, res) => {
+//     const { id } = req.params;
+//     const result = await prisma.meal.delete({
+//         where: { id: id }
+//     });
+//     res.send(result);
+// });
+
+// //likesCollection
+// app.get("/likes/:id", async(req, res) => {
+//     const { id } = req.params;
+//     const { q } = req.query;
+//     const mealId = id;
+//     const userEmail = q;
+
+//     const result = await prisma.likes.findFirst({
+//         where: {
+//             AND: [
+//                 { mealId },
+//                 { userEmail }
+//             ]
+//         }
+//     });
+//     res.send(result);
+// });
+
+// //reviewsCollection
+// app.get("/reviews", async(req, res) => {
+//     const result = await prisma.review.findMany();
+//     res.send(result);
+// });
+
+// app.get("/reviews/:email", async(req, res) => {
+//     const { email } = req.params;
+//     const result = await prisma.review.findMany({
+//         where: { ratingUserEmail: email }
+//     });
+//     res.send(result);
+// });
+
+// app.post("/reviews", async(req, res) => {
+//     try{
+//         const {
+//             mealId,
+//             mealTitle,
+//             mealCategory,
+//             rating,
+//             review,
+//             reviewUserName,
+//             reviewUserEmail,
+//             reviewUserPhotoURL
+//         } = req.body;
+
+//         // Check if this user already reviewed this meal
+//         const isExist = await prisma.review.findFirst({
+//             where: {
+//                 AND: [{ mealId }, { reviewUserEmail }],
+//             },
+//         });
+
+//         let result;
+//         let action; // "created" or "updated"
+
+//         if (isExist) {
+//             // ✅ Update existing rating & review
+//             result = await prisma.review.update({
+//                 where: { id: isExist.id },
+//                 data: {
+//                     rating,
+//                     review,
+//                     reviewUserName,
+//                     reviewUserPhotoURL,
+//                 },
+//             });
+//             action = "updated";
+//         } else {
+//             // ✅ Create new review
+//             result = await prisma.review.create({
+//                 data: {
+//                     meal: {
+//                         connect: { id: mealId },
+//                     },
+//                     mealTitle,
+//                     mealCategory,
+//                     rating,
+//                     review,
+//                     reviewUserName,
+//                     reviewUserEmail,
+//                     reviewUserPhotoURL,
+//                 },
+//             });
+//             action = "created";
+//         }
+
+//         res.json({ success: true, action, data: result });
+//     }catch (error) {
+//         res.status(500).json({ success: false, message: "Something went wrong" });
+//     }
+// });
+
+// app.listen(port, () => {
+//     console.log(
+//         `Server is running on port http://localhost:${port}/`, 
+//         `Live Link- https://my-hostel-server.onrender.com/`
+//     );
+// });
+
+// // Export Express app for Vercel
+// module.exports = app;
