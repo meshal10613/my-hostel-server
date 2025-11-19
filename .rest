@@ -1,1 +1,1 @@
-https://my-hostel-server.onrender.com/reviews
+https://my-hostel-server.onrender.com
