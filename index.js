@@ -3,9 +3,11 @@ const express = require("express");
 const cors = require("cors");
 const { PrismaClient } = require("@prisma/client");
 const app = express();
-const port = process.env.port || 3000;
+const port = process.env.PORT || 3000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.VITE_USERNAME}:${process.env.VITE_PASSWORD}@meshal10613.mbbtx0s.mongodb.net/?retryWrites=true&w=majority&appName=meshal10613`;
+
+// Live Link - https://my-hostel-server.onrender.com/
 
 //middleware
 app.use(cors());
@@ -318,7 +320,10 @@ app.post("/reviews", async(req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+    console.log(
+        `Server is running on port http://localhost:${port}/`, 
+        `Live Link- https://my-hostel-server.onrender.com/`
+    );
 });
 
 // Export Express app for Vercel
