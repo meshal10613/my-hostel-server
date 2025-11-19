@@ -124,7 +124,7 @@ app.get("/meals", async(req, res) => {
                                 { title: { contains: search, mode: "insensitive" } },
                                 // { description: { contains: search, mode: "insensitive" } },
                             ],
-                            }
+                        }
                         : {},
                 ],
             },
