@@ -1,1 +1,1 @@
-https://my-hostel-server.onrender.com
+https://my-hostel-server.onrender.com/users

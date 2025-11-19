@@ -1,1 +1,1 @@
-[Live Link](https://my-hostel-server.onrender.com/)
+[Live Link](https://my-hostel-server.onrender.com)
