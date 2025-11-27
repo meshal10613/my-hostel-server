@@ -1,12 +1,13 @@
 require("dotenv").config();
 const { PrismaClient } = require("@prisma/client");
 const { MongoClient, ServerApiVersion } = require("mongodb");
+const config = require("./config");
 
 // Prisma Client
 const prisma = new PrismaClient();
 
 // MongoDB URI from env
-const uri = process.env.DATABASE_URL;
+const uri = config.database_url;
 if (!uri) throw new Error("DATABASE_URL not set in .env");
 
 // MongoClient with stable API
@@ -23,7 +24,7 @@ let db = null;
 async function connectDB() {
     if (db) return db;
     await client.connect();
-    db = client.db(process.env.VITE_USERNAME || "my-hostel");
+    db = client.db(config.username || "my-hostel");
     console.log("Connected to MongoDB, DB:", db.databaseName);
     return db;
 }
