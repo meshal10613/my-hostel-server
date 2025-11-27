@@ -1,12 +1,13 @@
 const axios = require("axios");
 const { ObjectId } = require("mongodb");
 const config = require("../config/config");
-const { createPayment } = require("../services/sslService");
+const { createPayment, updatePayment, getPaymentByTransactionId, deletePaymentById } = require("../services/sslService");
+const { generateTrxId } = require("../config/generateTrxId");
 
 const createSSLPayment = async (req, res, next) => {
     try {
         const data = req.body;
-        const trxid = new ObjectId().toString();
+        const trxid = generateTrxId();
         const initiate = {
             store_id: config.ssl_store_id,
             store_passwd: config.ssl_store_pass,
@@ -48,9 +49,8 @@ const createSSLPayment = async (req, res, next) => {
             }
         );
 
-		data.trxid = trxid;
-		// console.log(data)
-		const payment = await createPayment(data);
+        data.trxid = trxid;
+        const payment = await createPayment(data);
         res.status(200).json({
             GatewayPageURL: response.data.GatewayPageURL,
             sessionkey: response.data.sessionkey,
@@ -61,4 +61,34 @@ const createSSLPayment = async (req, res, next) => {
     }
 };
 
-module.exports = { createSSLPayment };
+const successSSLPayment = async (req, res, next) => {
+    try {
+        const paymentSuccess = req.body;
+        //? Validation
+        const { data } = await axios.get(
+            `https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php?val_id=${paymentSuccess.val_id}&store_id=${paymentSuccess.store_id}&store_passwd=${config.ssl_store_pass}`
+        );
+        if (data.status !== "VALID") {
+            console.log("Invalid Payment", data);
+            return res.send({ message: "Invalid Payment" });
+        }
+
+        //? update payment status in database
+        const updateData = {
+            trxid: paymentSuccess.tran_id,
+            status: "Success",
+        };
+        const updateP = await updatePayment(updateData);
+        if (updateP.count === 1) {
+			//? find payment by transaction id
+			const findPayment = await getPaymentByTransactionId(paymentSuccess.tran_id);
+			//? delete payment by id
+			const deletePayment = await deletePaymentById(findPayment.id);
+			return res.redirect(config.client_url + "/success-payment");
+        };
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = { createSSLPayment, successSSLPayment };

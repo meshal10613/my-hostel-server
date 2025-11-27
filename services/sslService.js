@@ -26,4 +26,27 @@ const createPayment = async (data) => {
 	});
 };
 
-module.exports = { createPayment };
+const updatePayment = async (data) => {
+	return prisma.payment.updateMany({
+		where: {
+			trxid: data.trxid,
+		},
+		data: {
+			status: data.status,
+		},
+	});
+};
+
+const getPaymentByTransactionId = async (transactionId) => {
+	return prisma.payment.findFirst({
+		where: {
+			trxid: transactionId,
+		},
+	});
+};
+
+const deletePaymentById = async(id) => {
+	return prisma.payment.delete({ where: { id } });
+}
+
+module.exports = { createPayment, updatePayment, getPaymentByTransactionId, deletePaymentById };

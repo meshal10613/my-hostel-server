@@ -10,6 +10,7 @@ const port = config.port || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded());
 
 // Connect to MongoDB
 connectDB().then(() => console.log("MongoDB connected"));
