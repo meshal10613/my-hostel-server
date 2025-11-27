@@ -67,3 +67,19 @@ model Review {
 
   @@map("reviews")
 }
+
+model Payment {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  paymentMethod String
+  packageName   String
+  price         Int
+  benefits      String[]
+  userName      String
+  userEmail     String
+  status        String
+  trxid         String   @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("payments")
+}

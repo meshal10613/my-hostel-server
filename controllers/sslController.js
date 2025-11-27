@@ -1,7 +1,7 @@
-// const createPayment = require("../services/createPayment");
 const axios = require("axios");
 const { ObjectId } = require("mongodb");
 const config = require("../config/config");
+const { createPayment } = require("../services/sslService");
 
 const createSSLPayment = async (req, res, next) => {
     try {
@@ -48,7 +48,9 @@ const createSSLPayment = async (req, res, next) => {
             }
         );
 
-        // const response = await createSSLPayment(data);
+		data.trxid = trxid;
+		// console.log(data)
+		const payment = await createPayment(data);
         res.status(200).json({
             GatewayPageURL: response.data.GatewayPageURL,
             sessionkey: response.data.sessionkey,
