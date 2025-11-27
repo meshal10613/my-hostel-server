@@ -22,18 +22,18 @@ const createSSLPayment = async (req, res, next) => {
 
             cus_name: data.userName,
             cus_email: data.userEmail,
-            cus_add1: "Nalchity",
-            cus_city: "Jhalakathi",
-            cus_postcode: 8200,
-            cus_country: "Bangladesh",
-            cus_phone: "01764447574",
+            cus_add1: data.address,
+            cus_city: data.city,
+            cus_postcode: data.postcode,
+            cus_country: data.country,
+            cus_phone: data.phone,
 
             shipping_method: "Courier",
             ship_name: data.userName,
-            ship_add1: "Nalchity",
-            ship_city: "Jhalakathi",
-            ship_postcode: 8200,
-            ship_country: "Bangladesh",
+            ship_add1: data.address,
+            ship_city: data.city,
+            ship_postcode: data.postcode,
+            ship_country: data.country,
 
             product_name: `Meal Subscription ${data.packageName}`,
             product_category: data.packageName,
@@ -80,10 +80,10 @@ const successSSLPayment = async (req, res, next) => {
         };
         const updateP = await updatePayment(updateData);
         if (updateP.count === 1) {
-			//? find payment by transaction id
-			const findPayment = await getPaymentByTransactionId(paymentSuccess.tran_id);
-			//? delete payment by id
-			const deletePayment = await deletePaymentById(findPayment.id);
+			// //? find payment by transaction id
+			// const findPayment = await getPaymentByTransactionId(paymentSuccess.tran_id);
+			// //? delete payment by id
+			// const deletePayment = await deletePaymentById(findPayment.id);
 			return res.redirect(config.client_url + "/success-payment");
         };
     } catch (error) {
