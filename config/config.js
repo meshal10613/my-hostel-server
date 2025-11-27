@@ -11,6 +11,7 @@ const config = {
     ssl_store_id: process.env.SSL_STORE_ID,
     ssl_store_pass: process.env.SSL_STORE_PASS,
     client_url: process.env.CLIENT_URL,
+    server_url: process.env.SERVER_URL
 };
 
 module.exports = config;

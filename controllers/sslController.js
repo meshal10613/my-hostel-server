@@ -15,10 +15,10 @@ const createSSLPayment = async (req, res, next) => {
             currency: "BDT",
             tran_id: trxid,
 
-            success_url: "http://localhost:3000/ssl/success-payment",
-            fail_url: "http://localhost:3000/ssl/fail-payment",
-            cancel_url: "http://localhost:3000/ssl/cancel-payment",
-            ipn_url: "http://localhost:3000/ssl/ipn-success-payment", //not mandetory
+            success_url: config.server_url + "/ssl/success-payment",
+            fail_url: config.server_url + "/ssl/fail-payment",
+            cancel_url: config.server_url + "/ssl/cancel-payment",
+            ipn_url: config.server_url + "/ssl/ipn-success-payment", //not mandetory
 
             cus_name: data.userName,
             cus_email: data.userEmail,
