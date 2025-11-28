@@ -38,4 +38,11 @@ const makeAdmin = async (id) => {
     });
 };
 
-module.exports = { getUsers, createOrUpdateUser, makeAdmin };
+const updateBadge = async (email, badge) => {
+    return prisma.user.update({
+        where: { email },
+        data: { badge },
+    });
+};
+
+module.exports = { getUsers, createOrUpdateUser, makeAdmin, updateBadge };
