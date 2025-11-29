@@ -20,7 +20,8 @@ app.use("/users", require("./routes/userRoutes"));
 app.use("/meals", require("./routes/mealRoutes"));
 app.use("/reviews", require("./routes/reviewRoutes"));
 app.use("/likes", require("./routes/likeRoutes"));
-app.use("/ssl", require("./routes/sslRoutes"))
+app.use("/ssl", require("./routes/sslRoutes"));
+app.use("/stripe", require("./routes/stripeRoutes"));
 
 // Root
 app.get("/", (req, res) => res.send("Server is running successfully..."));

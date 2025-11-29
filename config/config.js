@@ -11,7 +11,8 @@ const config = {
     ssl_store_id: process.env.SSL_STORE_ID,
     ssl_store_pass: process.env.SSL_STORE_PASS,
     client_url: process.env.CLIENT_URL,
-    server_url: process.env.SERVER_URL
+    server_url: process.env.SERVER_URL,
+    payment_secret_key: process.env.PAYMENT_SECRET_KEY,
 };
 
 module.exports = config;
