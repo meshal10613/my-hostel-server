@@ -15,7 +15,7 @@ const getUsers = async (search) => {
     return prisma.user.findMany();
 };
 
-const createOrUpdateUser = async () => {
+const createOrUpdateUser = async (data) => {
     const { email, displayName, photoURL, badge, role } = data;
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
