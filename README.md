@@ -1,4 +1,1 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> d9ef9c6 (readme file updated)
+[Live Link](https://my-hostel-server.onrender.com/)
