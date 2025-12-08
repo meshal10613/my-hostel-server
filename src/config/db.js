@@ -3,9 +3,6 @@ const { PrismaClient } = require("@prisma/client");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const config = require("./config");
 
-// Prisma Client
-const prisma = new PrismaClient();
-
 // MongoDB URI from env
 const uri = config.database_url;
 if (!uri) throw new Error("DATABASE_URL not set in .env");
@@ -18,6 +15,9 @@ const client = new MongoClient(uri, {
         deprecationErrors: true,
     },
 });
+
+// Prisma Client
+const prisma = new PrismaClient();
 
 let db = null;
 

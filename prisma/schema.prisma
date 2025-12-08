@@ -16,7 +16,6 @@ model User {
   badge          String
   creationTime   DateTime @default(now())
   lastSignInTime DateTime @default(now())
-  // @updatedAt
 
   @@map("users") // maps to MongoDB collection
 }
