@@ -4,18 +4,19 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = env("DATABASE_URL")
 }
 
 model User {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  email          String   @unique
-  displayName    String
-  photoURL       String
-  role           String
-  badge          String
-  creationTime   DateTime @default(now())
-  lastSignInTime DateTime @default(now())
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  email           String    @unique
+  displayName     String
+  photoURL        String
+  role            String
+  badge           String
+  resetOtp        String?
+  resetOtpExpires DateTime?
+  creationTime    DateTime  @default(now())
+  lastSignInTime  DateTime  @default(now())
 
   @@map("users") // maps to MongoDB collection
 }

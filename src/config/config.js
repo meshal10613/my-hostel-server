@@ -13,6 +13,10 @@ const config = {
     client_url: process.env.CLIENT_URL,
     server_url: process.env.SERVER_URL,
     payment_secret_key: process.env.PAYMENT_SECRET_KEY,
+    nodemailer_email: process.env.NODEMAILER_EMAIL,
+    nodemailer_email_pass: process.env.NODEMAILER_EMAIL_PASS,
+    jwt_secret: process.env.JWT_SECRET,
+    jwt_expires_in:process.env.JWT_EXPIRES_IN
 };
 
 module.exports = config;

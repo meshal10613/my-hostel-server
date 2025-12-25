@@ -4,7 +4,7 @@ const { createPayment, updatePayment } = require("../services/sslService");
 const { updateBadge } = require("../services/userService");
 const { generateTrxId } = require("../config/generateTrxId");
 
-const createSSLPayment = async (req, res, next) => {
+const createSSLPayment = async (req, res) => {
     try {
         const data = req.body;
         const trxid = generateTrxId();
@@ -15,7 +15,9 @@ const createSSLPayment = async (req, res, next) => {
             currency: "BDT",
             tran_id: trxid,
 
-            success_url: config.server_url + `/ssl/success-payment?email=${data.userEmail}&package=${data.packageName}`,
+            success_url:
+                config.server_url +
+                `/ssl/success-payment?email=${data.userEmail}&package=${data.packageName}`,
             fail_url: config.server_url + "/ssl/fail-payment",
             cancel_url: config.server_url + "/ssl/cancel-payment",
             ipn_url: config.server_url + "/ssl/ipn-success-payment", //not mandetory
@@ -57,11 +59,15 @@ const createSSLPayment = async (req, res, next) => {
             status: response.data.status,
         });
     } catch (error) {
-        next(error);
+        res.status(500).json({
+            success: false,
+            message: error.message,
+            errors: error,
+        });
     }
 };
 
-const successSSLPayment = async (req, res, next) => {
+const successSSLPayment = async (req, res) => {
     try {
         const paymentSuccess = req.body;
         const q = req.query;
@@ -81,16 +87,20 @@ const successSSLPayment = async (req, res, next) => {
         };
         const updateP = await updatePayment(updateData);
         if (updateP.count === 1) {
-			// //? find payment by transaction id
-			// const findPayment = await getPaymentByTransactionId(paymentSuccess.tran_id);
-			// //? delete payment by id
-			// const deletePayment = await deletePaymentById(findPayment.id);
+            // //? find payment by transaction id
+            // const findPayment = await getPaymentByTransactionId(paymentSuccess.tran_id);
+            // //? delete payment by id
+            // const deletePayment = await deletePaymentById(findPayment.id);
             //? update user profile
-            const badge = await updateBadge(q.email, q.package) // need user email & badge
-			return res.redirect(config.client_url + "/success-payment");
-        };
+            const badge = await updateBadge(q.email, q.package); // need user email & badge
+            return res.redirect(config.client_url + "/success-payment");
+        }
     } catch (error) {
-        next(error);
+        res.status(500).json({
+            success: false,
+            message: error.message,
+            errors: error,
+        });
     }
 };
 
