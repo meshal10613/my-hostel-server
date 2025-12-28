@@ -1,27 +1,45 @@
-const jwt = require("jsonwebtoken");
-const config = require("../config/config");
+import { verifyToken } from "../utils/jwt.js";
 
-const authMiddleware = (req, res, next) => {
-    const authHeader = req.headers.authorization;
+export const auth = (allowedRoles = [], checkOwnership = false) => {
+    return (req, res, next) => {
+        try {
+            const token = req.headers.authorization?.split(" ")[1];
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return res.status(401).json({ message: "Unauthorized Access" });
-    }
+            if (!token) {
+                return res.status(401).json({ message: "Unauthorized Access" });
+            }
 
-    const token = authHeader.split(" ")[1];
+            const decoded = verifyToken(token);
+            req.user = decoded;
 
-    try {
-        const decoded = jwt.verify(token, config.jwt_secret);
-        req.user = decoded; // { id, email, role }
-        next();
-    } catch (error) {
-        return res.status(500).json({
-            path: req.url,
-            success: false,
-            message: error.message,
-            details: error,
-        });
-    }
+            // 1️⃣ Role check
+            if (allowedRoles.length && !allowedRoles.includes(decoded.role)) {
+                return res
+                    .status(403)
+                    .json({ message: "Forbidden: Insufficient role" });
+            }
+
+            // 2️⃣ Ownership check
+            if (
+                checkOwnership &&
+                req.params.id &&
+                decoded.id !== req.params.id
+            ) {
+                return res
+                    .status(403)
+                    .json({
+                        message:
+                            "Forbidden: You can only access your own resource",
+                    });
+            }
+
+            next();
+        } catch (error) {
+            return res
+                .status(401)
+                .json({ message: "Invalid token", error: error.message });
+        }
+    };
 };
 
-module.exports = authMiddleware;
+export default auth;
