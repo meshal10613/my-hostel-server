@@ -43,7 +43,7 @@ const updatePaymentStatus = async (id, updateData) => {
     const result = await Payment.findByIdAndUpdate(id, updateData, {
         new: true,
     });
-    return { message: "Payment status updated successfully", data: result };
+    return { message: `Payment status updated to ${updateData.status} successfully`, data: result };
 };
 
 export const paymentService = {
