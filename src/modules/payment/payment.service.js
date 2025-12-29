@@ -13,10 +13,30 @@ const getPaymentsByEmail = async (email) => {
         throw error;
     }
 
-	return { message: "Payments retrieved successfully", payments: result };
+    return { message: "Payments retrieved successfully", payments: result };
+};
+
+const createPayment = async (paymentData) => {
+    const result = await Payment.create(paymentData);
+    return result;
+};
+
+const updatePaymentStatus = async (id, updateData) => {
+    const payment = await Payment.findById(id);
+    if (!payment) {
+        const error = new Error("Payment not found");
+        error.statusCode = 404;
+        throw error;
+    }
+    const result = await Payment.findByIdAndUpdate(id, updateData, {
+        new: true,
+    });
+    return { message: "Payment status updated successfully", data: result };
 };
 
 export const paymentService = {
     getAllPayments,
     getPaymentsByEmail,
+    createPayment,
+    updatePaymentStatus,
 };

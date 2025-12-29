@@ -29,7 +29,36 @@ const getPaymentsByEmail = async (req, res, next) => {
 	}
 };
 
+const createPayment = async (req, res, next) => {
+	try {
+		const result = await paymentService.createPayment(req.body);
+		res.status(201).json({
+			success: true,
+			message: "Payment created successfully",
+			data: result
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+const updatePaymentStatus = async (req, res, next) => {
+	try {
+		const { id } = req.params;
+		const result = await paymentService.updatePaymentStatus(id, req.body);
+		res.status(200).json({
+			success: true,
+			message: result.message,
+			data: result
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
 export const paymentController = {
 	getAllPayments,
 	getPaymentsByEmail,
+	createPayment,
+	updatePaymentStatus
 };

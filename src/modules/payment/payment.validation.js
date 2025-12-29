@@ -1,9 +1,15 @@
 import z from "zod";
 
+const idParamSchema = z.object({
+	id: z
+		.string({ message: "Id must be a string" })
+		.regex(/^[0-9a-fA-F]{24}$/, "Invalid MongoDB ObjectId"),
+});
+
 const emailParamSchema = z.object({
-	email: z
-		.string({ message: "Email must be a string" })
-		.email({ message: "Invalid email address" }),
+    email: z
+        .string({ message: "Email must be a string" })
+        .email({ message: "Invalid email address" }),
 });
 
 const PaymentMethodEnum = ["Stripe", "SSLCommerz"];
@@ -36,14 +42,24 @@ const createPaymentSchema = z.object({
     status: z.enum(PaymentStatusEnum, {
         message:
             "Status must be Initiated, Pending, Success, Failed, Cancelled, Refunded, or PartiallyRefunded",
-    }),
+    }).optional(),
     trxid: z
         .string()
         .min(1, { message: "Transaction ID is required" })
-        .startsWith("TRX-", { message: "Transaction ID must start with TRX-" })
+        .startsWith("TRX-", { message: "Transaction ID must start with TRX-" }),
+});
+
+//? only status can be updated
+const updatePaymentSchema = z.object({
+	status: z.enum(PaymentStatusEnum, {
+		message:
+			"Status must be Initiated, Pending, Success, Failed, Cancelled, Refunded, or PartiallyRefunded",
+	}),
 });
 
 export const paymentValidation = {
-	emailParamSchema,
+	idParamSchema,
+    emailParamSchema,
     createPaymentSchema,
+    updatePaymentSchema,
 };
