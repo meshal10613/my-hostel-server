@@ -1,8 +1,15 @@
 import User from "../user/user.model.js";
 import Meal from "./meal.model.js";
 
-const getAllMeals = async () => {
-    const meals = await Meal.find()
+const getAllMeals = async (query) => {
+    const filter = {};
+
+    //? apply category filter only if it exists
+    if (query.category) {
+        filter.category = query.category;
+    }
+
+    const meals = await Meal.find(filter)
         .populate("userId", "name email photoURL role badge")
         .populate("reviews")
         .populate("likesCount");
@@ -18,7 +25,7 @@ const getAllMeals = async () => {
             const averageRating =
                 meal.reviews.length > 0
                     ? meal.reviews.reduce((sum, r) => sum + r.rating, 0) /
-                      meal.reviews.length
+                    meal.reviews.length
                     : 0;
 
             return {
@@ -28,7 +35,7 @@ const getAllMeals = async () => {
         })
     );
 
-    return { message: "Meals retrieved successfully", meals: result };
+    return { message: "Meals retrieved successfully", meals: result, query };
 };
 
 const getMealById = async (mealId) => {
@@ -94,7 +101,10 @@ const updateMeal = async (mealId, updateData) => {
     const updatedMeal = await Meal.findByIdAndUpdate(mealId, updateData, {
         new: true,
     });
-    return { message: `${updatedFields.join(", ")} updated successfully`, meal: updatedMeal };
+    return {
+        message: `${updatedFields.join(", ")} updated successfully`,
+        meal: updatedMeal,
+    };
 };
 
 const deleteMealById = async (mealId) => {
@@ -105,7 +115,7 @@ const deleteMealById = async (mealId) => {
         throw error;
     }
 
-	return { message: "Meal deleted successfully"};
+    return { message: "Meal deleted successfully" };
 };
 
 export const mealService = {
@@ -113,5 +123,5 @@ export const mealService = {
     getMealById,
     createMeal,
     updateMeal,
-	deleteMealById
+    deleteMealById,
 };

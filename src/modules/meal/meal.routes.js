@@ -6,7 +6,11 @@ import { mealValidation } from "./meal.validation.js";
 const router = Router();
 
 //? GET
-router.get("/", mealController.getAllMeals);
+router.get(
+    "/",
+    validate(mealValidation.categoryQuerySchema, "query"),
+    mealController.getAllMeals
+);
 router.get(
     "/:id",
     validate(mealValidation.idParamSchema, "params"),

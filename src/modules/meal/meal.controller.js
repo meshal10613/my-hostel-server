@@ -1,11 +1,14 @@
 import { mealService } from "./meal.service.js";
+import { mealValidation } from "./meal.validation.js";
 
 const getAllMeals = async (req, res, next) => {
     try {
-        const result = await mealService.getAllMeals();
+        const query = req.validateQuery || {};
+        const result = await mealService.getAllMeals(query);
         res.status(200).json({
             success: true,
             message: result.message,
+            query: result.query,
             totalMeals: result.meals.length,
             data: result.meals,
         });

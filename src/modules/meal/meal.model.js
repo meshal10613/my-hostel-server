@@ -8,7 +8,7 @@ const mealSchema = new mongoose.Schema(
             required: true,
         },
         title: { type: String, required: true },
-        category: { type: String, required: true },
+        category: { type: String, enum: ["Breakfast", "Lunch", "Dinner"], required: true },
         image: { type: String, required: true },
         description: { type: String, required: true },
         ingredients: { type: [String], required: true },

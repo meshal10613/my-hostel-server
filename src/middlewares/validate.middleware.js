@@ -18,8 +18,12 @@ export const validate =
                 });
             }
 
-            // Replace request data with parsed & validated data
-            req[property] = result.data;
+            // ✅ DO NOT mutate req.query
+            if (property === "query") {
+                req.validateQuery = result.data;
+            } else {
+                req[property] = result.data;
+            }
 
             next();
         } catch (err) {
