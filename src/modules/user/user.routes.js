@@ -30,13 +30,18 @@ router.post(
     validate(userValidation.loginUserSchema, "body"),
     userController.loginUser
 );
+router.post(
+    "/forget-password",
+    validate(userValidation.emailBodySchema, "body"),
+    userController.forgetPassword
+);
 
 //? PATCH
 router.patch(
     "/:id",
     auth(["User"], true),
     validate(userValidation.idParamSchema, "params"),
-	validate(userValidation.updateUserSchema, "body"),
+    validate(userValidation.updateUserSchema, "body"),
     userController.updateUserById
 );
 

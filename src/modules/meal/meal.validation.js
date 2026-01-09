@@ -6,6 +6,7 @@ const categoryQuerySchema = z.object({
     category: z.enum(CategoryEnum, {
         message: "Category must be Breakfast, Lunch, or Dinner",
     }).optional(),
+    search: z.string().optional(),
 });
 
 const idParamSchema = z.object({

@@ -1,6 +1,9 @@
 import User from "./user.model.js";
 import { comparePassword, hashPassword } from "../../utils/bcrypt.js";
 import { generateToken } from "../../utils/jwt.js";
+import { generateOtp } from "../../utils/generateOtp.js";
+import config from "../../config/config.js";
+import nodemailer from "nodemailer";
 
 const getAllUsers = async () => {
     const result = await User.find({}).select("-password");
@@ -92,7 +95,7 @@ const loginUser = async (loginData) => {
     delete user.password;
 
     return {
-        message: "Login successful",
+        message: "Login successful!",
         user: user,
         token: token,
     };
@@ -155,6 +158,214 @@ const updateUserById = async (id, updateData) => {
     };
 };
 
+const forgetPassword = async (email) => {
+    // 1️⃣ Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+        const error = new Error("No user found with this email!");
+        error.statusCode = 401;
+        throw error;
+    }
+
+    // 2️⃣ generate otp
+    const otp = generateOtp();
+
+    // 3️⃣ update user
+    await User.findOneAndUpdate(
+        { email },
+        {
+            resetOtp: otp,
+            resetOtpExpires: new Date(Date.now() + 5 * 60 * 1000),
+        },
+        { new: true }
+    );
+
+    // 4️⃣ create transport for sending email
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: config.nodemailer.email,
+            pass: config.nodemailer.pass,
+        },
+    });
+
+    // 5️⃣ send otp via email
+    const htmlContent = `
+        <div style="background-color: #f5f5f5; padding: 20px 0">
+            <table
+                width="100%"
+                cellpadding="0"
+                cellspacing="0"
+                style="font-family: Arial, sans-serif"
+            >
+                <tr>
+                    <td align="center">
+                        <table
+                            width="600"
+                            cellpadding="0"
+                            cellspacing="0"
+                            style="
+                                background: #ffffff;
+                                border-radius: 10px;
+                                overflow: hidden;
+                                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                            "
+                        >
+                            <!-- Header -->
+                            <tr>
+                                <td
+                                    style="
+                                        background: linear-gradient(
+                                            to right,
+                                            #ffae00,
+                                            #ff8a00
+                                        );
+                                        padding: 20px;
+                                        text-align: center;
+                                    "
+                                >
+                                    <h2
+                                        style="
+                                            margin: 0;
+                                            color: #ffffff;
+                                            font-size: 22px;
+                                        "
+                                    >
+                                        One-Time Password
+                                    </h2>
+                                </td>
+                            </tr>
+
+                            <!-- Body -->
+                            <tr>
+                                <td style="padding: 30px; color: #333333">
+                                    <p style="margin-top: 0">
+                                        Dear <strong>${user.name}</strong>,
+                                    </p>
+
+                                    <p>
+                                        We received a request to reset your
+                                        <strong>FoodWagon</strong> password. Use
+                                        the OTP below to continue:
+                                    </p>
+
+                                    <div
+                                        style="
+                                            margin: 25px 0;
+                                            text-align: center;
+                                        "
+                                    >
+                                        <span
+                                            style="
+                                                display: inline-block;
+                                                padding: 12px 24px;
+                                                font-size: 28px;
+                                                font-weight: bold;
+                                                letter-spacing: 4px;
+                                                color: #ffffff;
+                                                background: linear-gradient(
+                                                    to right,
+                                                    #ffae00,
+                                                    #ff8a00
+                                                );
+                                                border-radius: 6px;
+                                            "
+                                        >
+                                            ${otp}
+                                        </span>
+                                    </div>
+
+                                    <p style="color: #555555; font-size: 14px">
+                                        ⏱ This OTP is valid for
+                                        <strong>5 minutes</strong>.
+                                    </p>
+
+                                    <p style="color: #555555; font-size: 14px">
+                                        If you didn’t request this, you can
+                                        safely ignore this email or contact our
+                                        support team.
+                                    </p>
+                                </td>
+                            </tr>
+
+                            <!-- Footer -->
+                            <tr>
+                                <td
+                                    style="
+                                        padding: 20px;
+                                        border-top: 1px solid #eeeeee;
+                                        text-align: center;
+                                    "
+                                >
+                                    <table
+                                        cellpadding="0"
+                                        cellspacing="0"
+                                        align="center"
+                                    >
+                                        <tr>
+                                            <td>
+                                                <img
+                                                    src="https://i.ibb.co.com/HL6fd9Xh/logo.png"
+                                                    alt="FoodWagon"
+                                                    width="36"
+                                                    style="display: block"
+                                                />
+                                            </td>
+                                            <td style="padding-left: 10px">
+                                                <span
+                                                    style="
+                                                        font-size: 22px;
+                                                        font-weight: 700;
+                                                        color: #f17228;
+                                                    "
+                                                >
+                                                    food<span
+                                                        style="color: #ffb30e"
+                                                        >wagon</span
+                                                    >
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <p
+                                        style="
+                                            margin: 10px 0 0;
+                                            font-size: 12px;
+                                            color: #999999;
+                                        "
+                                    >
+                                        © ${new Date().getFullYear()} FoodWagon. All rights reserved.
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    `;
+
+    await transporter.sendMail(
+        {
+            from: config.nodemailer.email,
+            to: email,
+            subject: "OTP for FoodWagon Login",
+            html: htmlContent,
+        },
+        (err, info) => {
+            if (err) {
+                console.error(err);
+                return "Failed to send OTP email";
+            }
+        }
+    );
+
+    return {
+        message: "OTP sent successfully",
+    };
+};
+
 export const userService = {
     getAllUsers,
     getUserById,
@@ -162,4 +373,5 @@ export const userService = {
     loginUser,
     deleteUserById,
     updateUserById,
+    forgetPassword,
 };

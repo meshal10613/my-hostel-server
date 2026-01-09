@@ -8,6 +8,9 @@ const getAllMeals = async (query) => {
     if (query.category) {
         filter.category = query.category;
     }
+    if(query.search){
+        filter.title = { $regex: query.search, $options: "i" };
+    }
 
     const meals = await Meal.find(filter)
         .populate("userId", "name email photoURL role badge")

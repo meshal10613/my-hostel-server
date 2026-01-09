@@ -85,6 +85,19 @@ const updateUserById = async (req, res, next) => {
     }
 };
 
+const forgetPassword = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+        const result = await userService.forgetPassword(email);
+        res.status(200).json({
+            success: true,
+            message: result?.message || "",
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const userController = {
     getAllUsers,
     getUserById,
@@ -92,4 +105,5 @@ export const userController = {
     loginUser,
     deleteUserById,
     updateUserById,
+    forgetPassword,
 };

@@ -47,9 +47,16 @@ const updateUserSchema = z.object({
     badge: z.enum(["Bronze", "Silver", "Gold", "Platinum"]).optional(),
 });
 
+const emailBodySchema = z.object({
+    email: z
+        .string({ message: "Email must be a string" })
+        .email({ message: "Invalid email address" }),
+});
+
 export const userValidation = {
     idParamSchema,
     registerUserSchema,
     loginUserSchema,
     updateUserSchema,
+    emailBodySchema
 };
