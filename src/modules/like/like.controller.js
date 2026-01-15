@@ -2,7 +2,7 @@ import { likeService } from "./like.service.js";
 
 const getAllLikes = async (req, res, next) => {
     try {
-		const result = await likeService.getAllLikes();
+        const result = await likeService.getAllLikes();
         res.status(200).json({
             success: true,
             message: result.message,
@@ -14,4 +14,17 @@ const getAllLikes = async (req, res, next) => {
     }
 };
 
-export const likeController = { getAllLikes };
+const MutateLikeById = async (req, res, next) => {
+    try {
+        const { mealId } = req.params;
+        const { userId } = req.body;
+        const result = await likeService.MutateLikeById(mealId, userId);
+        res.status(200).json({
+            success: true,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const likeController = { getAllLikes, MutateLikeById };

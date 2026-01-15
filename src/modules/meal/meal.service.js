@@ -62,7 +62,7 @@ const getMealById = async (mealId) => {
     const averageRating =
         meal.reviews.length > 0
             ? meal.reviews.reduce((sum, r) => sum + r.rating, 0) /
-              meal.reviews.length
+            meal.reviews.length
             : 0;
 
     return {

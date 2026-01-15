@@ -53,10 +53,20 @@ const emailBodySchema = z.object({
         .email({ message: "Invalid email address" }),
 });
 
+const emailOtpBodySchema = z.object({
+    email: z
+        .string({ message: "Email must be a string" })
+        .email({ message: "Invalid email address" }),
+    otp: z
+        .string({ message: "OTP must be a string" })
+        .regex(/^\d{6}$/, { message: "OTP must be exactly 6 digits" }),
+});
+
 export const userValidation = {
     idParamSchema,
     registerUserSchema,
     loginUserSchema,
     updateUserSchema,
-    emailBodySchema
+    emailBodySchema,
+    emailOtpBodySchema,
 };

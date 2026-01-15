@@ -35,6 +35,16 @@ router.post(
     validate(userValidation.emailBodySchema, "body"),
     userController.forgetPassword
 );
+router.post(
+    "/verify-otp",
+    validate(userValidation.emailOtpBodySchema, "body"),
+    userController.verifyOtp
+);
+router.post(
+    "/reset-password",
+    validate(userValidation.loginUserSchema, "body"),
+    userController.resetPassword
+);
 
 //? PATCH
 router.patch(

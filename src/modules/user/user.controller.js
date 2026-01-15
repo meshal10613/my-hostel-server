@@ -98,6 +98,32 @@ const forgetPassword = async (req, res, next) => {
     }
 };
 
+const verifyOtp = async (req, res, next) => {
+    try {
+        const { email, otp } = req.body;
+        const result = await userService.verifyOtp(email, otp);
+        res.status(200).json({
+            success: true,
+            message: result?.message || "",
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const resetPassword = async (req, res, next) => {
+    try {
+        const {email, password} = req.body;
+        const result = await userService.resetPassword(email, password);
+        res.status(200).json({
+            success: true,
+            message: result?.message || "",
+        });
+    } catch (error) {
+        next(error)
+    }
+};
+
 export const userController = {
     getAllUsers,
     getUserById,
@@ -106,4 +132,6 @@ export const userController = {
     deleteUserById,
     updateUserById,
     forgetPassword,
+    verifyOtp,
+    resetPassword
 };

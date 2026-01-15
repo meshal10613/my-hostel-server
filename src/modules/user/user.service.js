@@ -366,6 +366,52 @@ const forgetPassword = async (email) => {
     };
 };
 
+const verifyOtp = async (email, otp) => {
+    // 1️⃣ Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+        const error = new Error("No user found with this email!");
+        error.statusCode = 401;
+        throw error;
+    }
+
+    // 2️⃣ Check if OTP is valid
+    if (user.resetOtp !== otp) {
+        const error = new Error("Invalid OTP!");
+        error.statusCode = 401;
+        throw error;
+    }
+
+    // 3️⃣ Check if OTP is expired
+    if (user.resetOtpExpires < Date.now()) {
+        const error = new Error("OTP expired!");
+        error.statusCode = 410;
+        throw error;
+    }
+
+    return { message: "OTP verified successfully!" };
+};
+
+const resetPassword = async (email, password) => {
+    // 1️⃣ Hash the password
+    const hashedPassword = await hashPassword(password);
+
+    // 2️⃣ Update the user's password
+    await User.updateOne(
+        { email },
+        {
+            $set: {
+                password: hashedPassword,
+                resetOtp: null,
+                resetOtpExpires: null,
+            },
+        },
+        { new: true }
+    );
+
+    return { message: "Your password changed successfully. Please login to continue!" }
+};
+
 export const userService = {
     getAllUsers,
     getUserById,
@@ -374,4 +420,6 @@ export const userService = {
     deleteUserById,
     updateUserById,
     forgetPassword,
+    verifyOtp,
+    resetPassword,
 };

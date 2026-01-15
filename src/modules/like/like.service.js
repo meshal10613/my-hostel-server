@@ -12,4 +12,14 @@ const getAllLikes = async () => {
     return { message: "Likes retrieved successfully", likes: result };
 };
 
-export const likeService = { getAllLikes };
+const MutateLikeById = async (mealId, userId) => {
+    const like = await Like.findOne({ mealId, userId });
+    if (!like) {
+        await Like.create({ mealId, userId });
+        return;
+    }
+    await Like.findOneAndDelete({ mealId, userId });
+    return;
+};
+
+export const likeService = { getAllLikes, MutateLikeById };
