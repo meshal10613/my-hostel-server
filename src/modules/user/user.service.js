@@ -16,14 +16,31 @@ const getAllUsers = async () => {
     return { message: "Users retrieved successfully", users: result };
 };
 
-const getUserById = async (id) => {
-    const result = await User.findById(id).select("-password");
+const getUserByEmail = async (email) => {
+    const result = await User.findOne(email).select("-password");
     if (!result) {
         const error = new Error("User not found");
         error.statusCode = 404;
         throw error;
     }
     return { message: "User retrieved successfully", user: result };
+};
+
+const jwt = async (data) => {
+    const user = await User.findOne(data);
+    if (!user) {
+        const error = new Error("User not found");
+        error.statusCode = 409; // Conflict
+        throw error;
+    }
+
+    const token = generateToken({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+    });
+
+    return { user, token };
 };
 
 const registerUser = async (userData) => {
@@ -409,12 +426,16 @@ const resetPassword = async (email, password) => {
         { new: true }
     );
 
-    return { message: "Your password changed successfully. Please login to continue!" }
+    return {
+        message:
+            "Your password changed successfully. Please login to continue!",
+    };
 };
 
 export const userService = {
     getAllUsers,
-    getUserById,
+    getUserByEmail,
+    jwt,
     registerUser,
     loginUser,
     deleteUserById,

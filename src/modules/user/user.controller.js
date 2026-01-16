@@ -14,14 +14,27 @@ const getAllUsers = async (req, res, next) => {
     }
 };
 
-const getUserById = async (req, res, next) => {
+const getUserByEmail = async (req, res, next) => {
     try {
-        const { id } = req.params;
-        const result = await userService.getUserById(id);
+        const { email } = req.params;
+        const result = await userService.getUserByEmail(email);
         res.status(200).json({
             success: true,
             message: result.message,
             data: result.user,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const jwt = async (req, res, next) => {
+    try {
+        const result = await userService.jwt(req.body);
+        res.status(200).json({
+            success: true,
+            user: result.user || "",
+            token: result.token || "",
         });
     } catch (error) {
         next(error);
@@ -113,25 +126,26 @@ const verifyOtp = async (req, res, next) => {
 
 const resetPassword = async (req, res, next) => {
     try {
-        const {email, password} = req.body;
+        const { email, password } = req.body;
         const result = await userService.resetPassword(email, password);
         res.status(200).json({
             success: true,
             message: result?.message || "",
         });
     } catch (error) {
-        next(error)
+        next(error);
     }
 };
 
 export const userController = {
     getAllUsers,
-    getUserById,
+    getUserByEmail,
+    jwt,
     registerUser,
     loginUser,
     deleteUserById,
     updateUserById,
     forgetPassword,
     verifyOtp,
-    resetPassword
+    resetPassword,
 };

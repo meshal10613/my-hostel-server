@@ -21,16 +21,27 @@ export const auth = (allowedRoles = [], checkOwnership = false) => {
 
             // 2️⃣ Ownership check
             if (
-                checkOwnership &&
-                req.params.id &&
-                decoded.id !== req.params.id
+                checkOwnership
+                // decoded.role !== "Admin" && //? then admin can access all
             ) {
-                return res
-                    .status(403)
-                    .json({
+                const { id, email } = req.params;
+
+                let isOwner = false;
+
+                if (id && decoded.id === id) {
+                    isOwner = true;
+                }
+
+                if (email && decoded.email === email) {
+                    isOwner = true;
+                }
+
+                if (!isOwner) {
+                    return res.status(403).json({
                         message:
                             "Forbidden: You can only access your own resource",
                     });
+                }
             }
 
             next();

@@ -13,13 +13,14 @@ const router = Router();
 //? GET
 router.get("/", auth(["Admin"]), userController.getAllUsers);
 router.get(
-    "/:id",
-    auth(["Admin", "User"], true),
-    validate(userValidation.idParamSchema, "params"),
-    userController.getUserById
+    "/:email",
+    auth(["Admin", "User"]),
+    validate(userValidation.emailParamSchema, "params"),
+    userController.getUserByEmail
 );
 
 //? POST
+router.post("/jwt", validate(userValidation.emailBodySchema, "body"), userController.jwt)
 router.post(
     "/register",
     validate(userValidation.registerUserSchema, "body"),
@@ -49,7 +50,7 @@ router.post(
 //? PATCH
 router.patch(
     "/:id",
-    auth(["User"], true),
+    auth(["User"]),
     validate(userValidation.idParamSchema, "params"),
     validate(userValidation.updateUserSchema, "body"),
     userController.updateUserById

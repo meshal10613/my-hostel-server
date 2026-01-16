@@ -6,6 +6,12 @@ const idParamSchema = z.object({
         .regex(/^[0-9a-fA-F]{24}$/, "Invalid MongoDB ObjectId"),
 });
 
+const emailParamSchema = z.object({
+    email: z
+        .string({ message: "Email must be a string" })
+        .email({ message: "Invalid email address" }),
+});
+
 const registerUserSchema = z.object({
     email: z
         .string({ message: "Email must be a string" })
@@ -64,6 +70,7 @@ const emailOtpBodySchema = z.object({
 
 export const userValidation = {
     idParamSchema,
+    emailParamSchema,
     registerUserSchema,
     loginUserSchema,
     updateUserSchema,
