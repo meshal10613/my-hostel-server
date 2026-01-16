@@ -17,8 +17,8 @@ const getAllLikes = async (req, res, next) => {
 const MutateLikeById = async (req, res, next) => {
     try {
         const { mealId } = req.params;
-        const { userId } = req.body;
-        const result = await likeService.MutateLikeById(mealId, userId);
+        const { email } = req.body;
+        const result = await likeService.MutateLikeById(mealId, email);
         res.status(200).json({
             success: true,
         });

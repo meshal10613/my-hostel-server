@@ -7,8 +7,8 @@ const likeSchema = new mongoose.Schema(
             ref: "Meal",
             required: true,
         },
-        userId: {
-            type: mongoose.Schema.Types.ObjectId,
+        email: {
+            type: mongoose.Schema.Types.String,
             ref: "User",
             required: true,
         },
@@ -16,6 +16,6 @@ const likeSchema = new mongoose.Schema(
     { collection: "likes", versionKey: false }
 );
 
-likeSchema.index({ mealId: 1, userId: 1 }, { unique: true });
+likeSchema.index({ mealId: 1, email: 1 }, { unique: true });
 
 export default mongoose.model("Like", likeSchema);

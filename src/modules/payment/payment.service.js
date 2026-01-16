@@ -1,5 +1,9 @@
+import Stripe from "stripe";
+import { generateTrxId } from "../../utils/generateTrxId.js";
 import User from "../user/user.model.js";
 import Payment from "./payment.model.js";
+import config from "../../config/config.js";
+const stripe = new Stripe(config.payment.secret_key);
 
 const getAllPayments = async () => {
     const result = await Payment.find();
@@ -18,32 +22,51 @@ const getPaymentsByEmail = async (email) => {
 };
 
 const createPayment = async (paymentData) => {
-    const { userName, userEmail } = paymentData;
+    const trxid = generateTrxId();
+    paymentData.trxid = trxid;
 
-    // Check if the user exists
-    const user = await User.findOne({ name: userName, email: userEmail });
-    if (!user) {
-        const error = new Error("User does not exist");
-        error.statusCode = 404;
-        throw error;
-    }
+    const session = await stripe.paymentIntents.create({
+        // Provide the exact Price ID (for example, price_1234) of the product you want to sell
+        amount: paymentData.price, //amount in cents
+        currency: "bdt",
+        payment_method_types: ["card"],
+        // return_url: `${YOUR_DOMAIN}/return?session_id={CHECKOUT_SESSION_ID}`,
+    });
 
-    // Create the payment if user exists
-    const result = await Payment.create(paymentData);
-    return result;
+    paymentData.status = "Pending";
+    await Payment.create(paymentData);
+    return {
+        clientSecret: session.client_secret,
+    };
 };
 
-const updatePaymentStatus = async (id, updateData) => {
-    const payment = await Payment.findById(id);
+const updatePaymentStatus = async (data) => {
+    const { email, status } = data;
+    const payment = await Payment.findOne(
+        { userEmail: email },
+        {
+            new: true,
+        }
+    );
     if (!payment) {
         const error = new Error("Payment not found");
         error.statusCode = 404;
         throw error;
     }
-    const result = await Payment.findByIdAndUpdate(id, updateData, {
-        new: true,
-    });
-    return { message: `Payment status updated to ${updateData.status} successfully`, data: result };
+
+    const updateData = { status };
+    const result = await Payment.findOneAndUpdate(
+        { userEmail: email },
+        updateData,
+        {
+            new: true,
+        }
+    );
+
+    return {
+        message: `Payment status updated to ${status} successfully`,
+        data: result,
+    };
 };
 
 export const paymentService = {

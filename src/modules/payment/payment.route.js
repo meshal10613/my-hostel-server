@@ -15,16 +15,15 @@ router.get(
 
 //? POST
 router.post(
-    "/",
-    validate(paymentValidation.createPaymentSchema),
+    "/stripe/create-payment-intent",
+    validate(paymentValidation.createPaymentSchema, "body"),
     paymentController.createPayment
 );
 
 //? PATCH
 router.patch(
-    "/:id",
-	validate(paymentValidation.idParamSchema, "params"),
-    validate(paymentValidation.updatePaymentSchema),
+    "/stripe/confirm-payment-intent",
+    validate(paymentValidation.updatePaymentSchema, "body"),
     paymentController.updatePaymentStatus
 );
 

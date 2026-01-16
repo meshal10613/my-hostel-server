@@ -42,15 +42,12 @@ const createPaymentSchema = z.object({
     status: z.enum(PaymentStatusEnum, {
         message:
             "Status must be Initiated, Pending, Success, Failed, Cancelled, Refunded, or PartiallyRefunded",
-    }).optional(),
-    trxid: z
-        .string()
-        .min(1, { message: "Transaction ID is required" })
-        .startsWith("TRX-", { message: "Transaction ID must start with TRX-" }),
+    }).optional()
 });
 
 //? only status can be updated
 const updatePaymentSchema = z.object({
+    email: z.string().email({ message: "Invalid email address" }),
 	status: z.enum(PaymentStatusEnum, {
 		message:
 			"Status must be Initiated, Pending, Success, Failed, Cancelled, Refunded, or PartiallyRefunded",
